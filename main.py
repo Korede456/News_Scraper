@@ -18,7 +18,6 @@ def parse_relative_time(time_str):
     elif 'day' in time_str:
         days_ago = int(time_str.split()[0])
         return current_time - timedelta(days=days_ago)
-    # Add more cases as needed
     else:
         return current_time
 
@@ -66,11 +65,57 @@ def scrape_tech_news():
     except requests.exceptions.RequestException as e:
         print(f'Error fetching the webpage: {e}')
 
-# Schedule the scraping function to run every 5 hours
-schedule.every(5).hours.do(scrape_tech_news)
+# Function to scrape article details from the links in the JSON file
+def scrape_article_details():
+    data_file = 'tech_news.json'
+    article_details_file = 'article_details.json'
+    
+    if not os.path.exists(data_file):
+        print(f'{data_file} does not exist.')
+        return
 
-# Initial run
+    with open(data_file, 'r') as file:
+        news_list = json.load(file)
+
+    detailed_articles = []
+
+    for news_item in news_list:
+        try:
+            response = requests.get(news_item['link'])
+            response.raise_for_status()
+            soup = BeautifulSoup(response.content, 'html.parser')
+
+            # Example of scraping the article details
+            category = soup.find("a", class_="is-taxonomy-category")
+            article_content = soup.find('div', class_='wp-block-post-content')  # Modify based on website's structure
+            content = article_content.get_text(strip=True) if article_content else "No content found"
+
+            detailed_article = {
+                'title': news_item['title'],
+                'category': category.text,
+                'timeposted': news_item['timeposted'],
+                'content': content
+            }
+
+            detailed_articles.append(detailed_article)
+            print(f'Scraped details for article: {news_item["title"]}')
+
+        except requests.exceptions.RequestException as e:
+            print(f'Error fetching the article page: {e}')
+
+    # Save the detailed articles to JSON file
+    with open(article_details_file, 'w') as file:
+        json.dump(detailed_articles, file, indent=4)
+
+    print(f'Scraped details of {len(detailed_articles)} articles and saved to {article_details_file}.')
+
+# Schedule the scraping functions
+schedule.every(5).hours.do(scrape_tech_news)
+schedule.every(5).hours.do(scrape_article_details)
+
+# Initial runs
 scrape_tech_news()
+scrape_article_details()
 
 # Keep the script running
 while True:
