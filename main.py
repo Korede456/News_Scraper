@@ -5,6 +5,19 @@ import time
 import json
 import os
 from datetime import datetime, timedelta
+from google.generativeai import GenerativeModel, configure
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+api_key = os.getenv("GOOGLE_API_KEY")
+
+if api_key:
+    configure(api_key=api_key)
+    model = GenerativeModel('gemini-1.5-flash')
+else:
+    print("Error: GOOGLE_API_KEY not found in environment variables.")
+    exit(1)
 
 # Function to parse relative time strings into datetime objects
 def parse_relative_time(time_str):
@@ -86,19 +99,29 @@ def scrape_article_details():
             soup = BeautifulSoup(response.content, 'html.parser')
 
             # Example of scraping the article details
-            category = soup.find("a", class_="is-taxonomy-category")
+            category = soup.find('a', class_='is-taxonomy-category wp-block-tenup-post-primary-term')
             article_content = soup.find('div', class_='wp-block-post-content')  # Modify based on website's structure
             content = article_content.get_text(strip=True) if article_content else "No content found"
 
+            try:
+                paraphrased_title = model.generate_content(f"Paraphrase the following title and return a single paraphrased title with no additional information: {news_item['title']}").text
+                paraphrased_content = model.generate_content(f"Paraphrase the following content and return the paraphrased content in a markup format: {content}").text
+            except Exception as e:
+                print(f'Error using Google Generative AI for paraphrasing: {e}')
+                paraphrased_title = news_item['title']
+                paraphrased_content = content
+
             detailed_article = {
-                'title': news_item['title'],
-                'category': category.text,
+                'original_title': news_item['title'],
+                'paraphrased_title': paraphrased_title,
+                'category': category.get_text(strip=True) if category else 'No category',
                 'timeposted': news_item['timeposted'],
-                'content': content
+                'original_content': content,
+                'paraphrased_content': paraphrased_content
             }
 
             detailed_articles.append(detailed_article)
-            print(f'Scraped details for article: {news_item["title"]}')
+            print(f'Scraped and paraphrased details for article: {news_item["title"]}')
 
         except requests.exceptions.RequestException as e:
             print(f'Error fetching the article page: {e}')
@@ -107,7 +130,7 @@ def scrape_article_details():
     with open(article_details_file, 'w') as file:
         json.dump(detailed_articles, file, indent=4)
 
-    print(f'Scraped details of {len(detailed_articles)} articles and saved to {article_details_file}.')
+    print(f'Scraped and paraphrased details of {len(detailed_articles)} articles and saved to {article_details_file}.')
 
 # Schedule the scraping functions
 schedule.every(5).hours.do(scrape_tech_news)
