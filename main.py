@@ -7,6 +7,7 @@ import os
 from datetime import datetime, timedelta
 from google.generativeai import GenerativeModel, configure
 from dotenv import load_dotenv
+from Sentiment import SentOriginal  # Import the sentiment analysis function
 
 # Load environment variables
 load_dotenv()
@@ -27,10 +28,10 @@ def parse_relative_time(time_str):
         return current_time - timedelta(hours=hours_ago)
     elif 'minute' in time_str:
         minutes_ago = int(time_str.split()[0])
-        return current_time - timedelta(minutes=minutes_ago)
+        return current_time - timedelta(minutes_ago)
     elif 'day' in time_str:
         days_ago = int(time_str.split()[0])
-        return current_time - timedelta(days=days_ago)
+        return current_time - timedelta(days_ago)
     else:
         return current_time
 
@@ -53,7 +54,7 @@ def scrape_tech_news():
             if title_tag:
                 title = title_tag.text
                 link = title_tag.find('a')['href']
-                time_tag = article.find("div", class_='wp-block-tc23-post-time-ago')
+                time_tag = article.find("time", class_='wp-block-tc23-post-time-ago')
                 if time_tag:
                     time_str = time_tag.text.strip()
                     time_posted = parse_relative_time(time_str)
@@ -66,7 +67,7 @@ def scrape_tech_news():
                     news_list.append(news_item)
 
         # Only keep articles within the last 5 hours
-        five_hours_ago = datetime.now() - timedelta(hours=5)
+        five_hours_ago = datetime.now() - timedelta(hours=24)
         news_list = [article for article in news_list if datetime.strptime(article['timeposted'], '%Y-%m-%d %H:%M:%S') > five_hours_ago]
 
         # Save the data to JSON file, replacing the old data
@@ -111,13 +112,17 @@ def scrape_article_details():
                 paraphrased_title = news_item['title']
                 paraphrased_content = content
 
+            # Perform sentiment analysis on the paraphrased content
+            sentiment_analysis = SentOriginal(paraphrased_content)
+
             detailed_article = {
                 'original_title': news_item['title'],
                 'paraphrased_title': paraphrased_title,
                 'category': category.get_text(strip=True) if category else 'No category',
                 'timeposted': news_item['timeposted'],
                 'original_content': content,
-                'paraphrased_content': paraphrased_content
+                'paraphrased_content': paraphrased_content,
+                'sentiment_analysis': sentiment_analysis  # Add sentiment analysis result
             }
 
             detailed_articles.append(detailed_article)

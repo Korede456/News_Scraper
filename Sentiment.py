@@ -1,48 +1,52 @@
 from textblob import TextBlob
-def SentOriginal():
-    Text = str("It was a good movie")
 
-    Polarity = TextBlob(Text).sentiment.polarity
-    Subjectivity = TextBlob(Text).sentiment.subjectivity
+def SentOriginal(text):
+    # Calculate polarity and subjectivity
+    polarity = TextBlob(text).sentiment.polarity
+    subjectivity = TextBlob(text).sentiment.subjectivity
 
-    PolarText = ()
-    SubjText = ()
-
-    if Polarity >= 0.5:
-        PolarText = " highly positive sentiment"
-    elif Polarity <= -0.5:
-        PolarText = "highly negative sentiment"
+    # Determine sentiment based on polarity
+    if polarity >= 0.5:
+        polar_text = "highly positive sentiment"
+    elif polarity <= -0.5:
+        polar_text = "highly negative sentiment"
     else:
-        PolarText = "neutral sentiment"
+        polar_text = "neutral sentiment"
 
-    if Subjectivity < 0.5:
-        SubjText = "more subjective perspective"
+    # Determine perspective based on subjectivity
+    if subjectivity < 0.5:
+        subj_text = "more objective perspective"
     else:
-        SubjText = "more objective perspective"
+        subj_text = "more subjective perspective"
 
-    AnalysisOriginal = (f'The text is written with a {PolarText}  from a {SubjText}')
-
+    # Construct analysis result
+    analysis_original = f'The text is written with a {polar_text} from a {subj_text}'
+    
+    return analysis_original
 
 def SentParaphrased():
-    Text = str("It was a good movie")
+    text = "It was a good movie"
 
-    Polarity = TextBlob(Text).sentiment.polarity
-    Subjectivity = TextBlob(Text).sentiment.subjectivity
+    # Calculate polarity and subjectivity
+    polarity = TextBlob(text).sentiment.polarity
+    subjectivity = TextBlob(text).sentiment.subjectivity
 
-    PolarText = ()
-    SubjText = ()
-
-    if Polarity >= 0.5:
-        PolarText = " highly positive sentiment"
-    elif Polarity <= -0.5:
-        PolarText = "highly negative sentiment"
+    # Determine sentiment based on polarity
+    if polarity >= 0.5:
+        polar_text = "highly positive sentiment"
+    elif polarity <= -0.5:
+        polar_text = "highly negative sentiment"
     else:
-        PolarText = "neutral sentiment"
+        polar_text = "neutral sentiment"
 
-    if Subjectivity < 0.5:
-        SubjText = "more subjective perspective"
+    # Determine perspective based on subjectivity
+    if subjectivity < 0.5:
+        subj_text = "more objective perspective"
     else:
-        SubjText = "more objective perspective"
+        subj_text = "more subjective perspective"
 
-    AnalysisParaphrased = (f'The text is written with a {PolarText}  from a {SubjText}')
+    # Construct analysis result
+    analysis_paraphrased = f'The text is written with a {polar_text} from a {subj_text}'
+    
+    return analysis_paraphrased
 
